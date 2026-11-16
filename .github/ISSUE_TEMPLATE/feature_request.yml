@@ -1,0 +1,16 @@
+name: Improvement / Melhoria
+description: Propose a focused improvement with acceptance criteria.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem and proposed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria and validation
+      description: What observable evidence would establish that this is complete?
+    validations:
+      required: true

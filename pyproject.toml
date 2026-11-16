@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling==1.33.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sentinela-gestures"
+version = "0.1.0"
+description = "A local webcam gesture-sequence demonstration built on YOLO"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = []
+
+[project.optional-dependencies]
+runtime = ["opencv-python>=4.11,<5", "ultralytics>=8.3.59,<9"]
+
+[project.urls]
+Repository = "https://github.com/marco-pcg/sentinela"
+Issues = "https://github.com/marco-pcg/sentinela/issues"
+
+[project.scripts]
+sentinela = "sentinela.cli:main"
+sentinela-split = "sentinela.data:main"
+
+[dependency-groups]
+dev = ["pytest>=8.3,<10", "ruff>=0.11,<1", "build>=1.2,<2", "hatchling>=1.27,<2", "pip-audit>=2.9,<3"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["sentinela"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+include = ["*.py", "pyproject.toml"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.hatch.build.targets.sdist]
+exclude = ["*.pt", "*.ipynb"]

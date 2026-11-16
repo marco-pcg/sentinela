@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.23'
+          enable-cache: true
+      - run: uv sync --locked --python '${{ matrix.python }}'
+      - run: uv run --locked ruff check .
+      - run: uv run --locked ruff format --check .
+      - run: uv run --locked pytest
+      - run: uv run --locked python -m build --no-isolation
+      - name: Check CLI without optional runtime
+        run: |
+          uv run --locked sentinela --help
+          uv run --locked sentinela-split --help
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@94527f2e458b27549849d47d273a16bec83a01e9 # v7
+        with:
+          version: '0.11.23'
+          enable-cache: true
+      - run: uv sync --locked
+      - name: Export core/development and optional runtime locks
+        run: |
+          uv export --locked --no-emit-project --output-file /tmp/core-requirements.txt
+          uv export --locked --no-dev --extra runtime --no-emit-project --output-file /tmp/runtime-requirements.txt
+      - name: Audit without installing the ML stack
+        run: |
+          uv run --locked pip-audit --disable-pip --no-deps -r /tmp/core-requirements.txt
+          uv run --locked pip-audit --disable-pip --no-deps -r /tmp/runtime-requirements.txt
