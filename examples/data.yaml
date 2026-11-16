@@ -1,0 +1,10 @@
+# Template only. Replace the root with a validated, licensed local dataset.
+path: /absolute/path/to/dataset
+train: images/train
+val: images/val
+# test: images/test  # independent held-out data
+names:
+  0: joinha
+  1: paz
+  2: saudacao_vulcana
+  3: rock
